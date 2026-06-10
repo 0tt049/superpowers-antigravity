@@ -130,6 +130,14 @@ From 24 failure memories:
 - Implications of success
 - ANY communication suggesting completion/correctness
 
+## Long-Running Verification
+
+When launching a build or test suite that might take more than a few minutes, set a one-shot timer with `schedule` to ensure you check back:
+
+```
+schedule(DurationSeconds: 300, Prompt: "Check if the verification command has completed")
+```
+
 ## The Bottom Line
 
 **No shortcuts for verification.**

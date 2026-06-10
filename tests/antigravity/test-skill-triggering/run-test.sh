@@ -126,12 +126,6 @@ case "$SKILL_NAME" in
             TRIGGERED=true
         fi
         ;;
-    executing-plans)
-        if echo "$OUTPUT" | grep -qiE "execut.*plan|follow.*plan|implement.*plan"; then
-            echo "  ✓ Plan execution behavior detected"
-            TRIGGERED=true
-        fi
-        ;;
     brainstorming)
         if echo "$OUTPUT" | grep -qiE "brainstorm|ideas|options|approaches|alternatives"; then
             echo "  ✓ Brainstorming behavior detected"

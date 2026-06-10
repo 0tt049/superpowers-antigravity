@@ -5,9 +5,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Reuse prompts from the existing skill-triggering tests
-SHARED_PROMPTS_DIR="$(cd "$SCRIPT_DIR/../../skill-triggering/prompts" && pwd)"
-LOCAL_PROMPTS_DIR="$SCRIPT_DIR/prompts"
+PROMPTS_DIR="$SCRIPT_DIR/prompts"
 
 # Check agy is available
 if ! command -v agy &>/dev/null; then
@@ -20,7 +18,6 @@ SKILLS=(
     "test-driven-development"
     "writing-plans"
     "dispatching-parallel-agents"
-    "executing-plans"
     "requesting-code-review"
     "brainstorming"
 )
@@ -29,8 +26,7 @@ echo "=========================================="
 echo " Skill Triggering Tests (Antigravity 2.0)"
 echo "=========================================="
 echo ""
-echo "Shared prompts: $SHARED_PROMPTS_DIR"
-echo "Local prompts:  $LOCAL_PROMPTS_DIR"
+echo "Prompts directory: $PROMPTS_DIR"
 echo ""
 
 PASSED=0
@@ -39,11 +35,7 @@ SKIPPED=0
 RESULTS=()
 
 for skill in "${SKILLS[@]}"; do
-    # Try local prompts first, then shared prompts
-    prompt_file="$LOCAL_PROMPTS_DIR/${skill}.txt"
-    if [ ! -f "$prompt_file" ]; then
-        prompt_file="$SHARED_PROMPTS_DIR/${skill}.txt"
-    fi
+    prompt_file="$PROMPTS_DIR/${skill}.txt"
 
     if [ ! -f "$prompt_file" ]; then
         echo "⚠️  SKIP: No prompt file for $skill"

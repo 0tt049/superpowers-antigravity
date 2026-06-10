@@ -7,9 +7,9 @@ Testing Superpowers skills on the Antigravity 2.0 platform (Google DeepMind's ag
 This test suite validates that Superpowers skills work correctly on Antigravity 2.0, covering:
 
 - **Plugin discovery** — Verifies Antigravity loads the superpowers plugin and exposes skills
-- **Skill triggering** — Tests that naive prompts trigger the correct skill (reuses prompts from `tests/skill-triggering/prompts/`)
+- **Skill triggering** — Tests that naive prompts trigger the correct skill
 - **Subagent dispatch** — Validates the `subagent-driven-development` workflow using `invoke_subagent`
-- **Tool mapping accuracy** — Static validation that `antigravity-tools.md` references only valid tools
+- **Skill tool purity** — Static validation that skill files contain no legacy tool names or platform references
 - **Workspace isolation** — Confirms worktree/branch workspace guidance works
 
 ## Prerequisites
@@ -55,11 +55,11 @@ cd tests/antigravity
 ./test-subagent-dispatch.sh
 ```
 
-### Tool mapping accuracy (static, no agy required)
+### Skill tool purity (static, no agy required)
 
 ```bash
 cd tests/antigravity
-./test-tool-mapping-accuracy.sh
+./test-skill-tool-purity.sh
 ```
 
 ### Workspace isolation
@@ -119,22 +119,6 @@ find ~/.gemini/antigravity/brain -name "transcript.jsonl" -mmin -60
 # Search for specific tool calls in a transcript
 grep '"invoke_subagent"' ~/.gemini/antigravity/brain/<id>/.system_generated/logs/transcript.jsonl
 ```
-
-## Differences from Claude Code Testing
-
-| Aspect | Claude Code | Antigravity 2.0 |
-|--------|-------------|-----------------|
-| **CLI command** | `claude` | `agy` |
-| **Headless flag** | `-p` | `--print` |
-| **Transcript location** | `~/.claude/projects/<dir>/<session>.jsonl` | `~/.gemini/antigravity/brain/<id>/.system_generated/logs/transcript.jsonl` |
-| **Transcript format** | Flat JSONL with `type: "assistant"/"user"` | Structured JSONL with `step_index`, `source`, `type`, `status` |
-| **Tool invocation field** | `"name":"Skill"` with `"skill":"..."` | Tool name directly in `tool_calls[].name` (e.g., `invoke_subagent`, `view_file`) |
-| **Subagent dispatch** | `Task` / `Agent` tool | `invoke_subagent` tool |
-| **Task tracking** | `TodoWrite` tool | `write_to_file` creating `task.md` artifact |
-| **Skill invocation** | Explicit `Skill` tool call | Skills auto-load from plugins; look for `view_file` on `SKILL.md` |
-| **Plugin loading** | `--plugin-dir` flag | Plugins in `~/.gemini/config/plugins/` |
-| **Permission bypass** | `--permission-mode bypassPermissions` | Not needed (Antigravity handles permissions differently) |
-| **Stream output** | `--output-format stream-json` | `--print` (plain text output) |
 
 ## Troubleshooting
 

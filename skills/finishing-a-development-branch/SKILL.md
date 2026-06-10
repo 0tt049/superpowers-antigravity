@@ -65,32 +65,35 @@ Or ask: "This branch split from main - is that correct?"
 
 ### Step 4: Present Options
 
-**Normal repo and named-branch worktree — present exactly these 4 options:**
+Use `ask_question` to present the options:
 
 ```
-Implementation complete. What would you like to do?
-
-1. Merge back to <base-branch> locally
-2. Push and create a Pull Request
-3. Keep the branch as-is (I'll handle it later)
-4. Discard this work
-
-Which option?
+ask_question(questions: [{
+  question: "Implementation complete. What would you like to do?",
+  options: [
+    "Merge back to <base-branch> locally",
+    "Push and create a Pull Request",
+    "Keep the branch as-is (I'll handle it later)",
+    "Discard this work"
+  ],
+  is_multi_select: false
+}])
 ```
 
-**Detached HEAD — present exactly these 3 options:**
+And for detached HEAD:
 
 ```
-Implementation complete. You're on a detached HEAD (externally managed workspace).
-
-1. Push as new branch and create a Pull Request
-2. Keep as-is (I'll handle it later)
-3. Discard this work
-
-Which option?
+ask_question(questions: [{
+  question: "Implementation complete. You're on a detached HEAD (externally managed workspace). What would you like to do?",
+  options: [
+    "Push as new branch and create a Pull Request",
+    "Keep as-is (I'll handle it later)",
+    "Discard this work"
+  ],
+  is_multi_select: false
+}])
 ```
 
-**Don't add explanation** - keep options concise.
 
 ### Step 5: Execute Choice
 
@@ -170,26 +173,21 @@ git branch -D <feature-branch>
 
 ### Step 6: Cleanup Workspace
 
-**Only runs for Options 1 and 4.** Options 2 and 3 always preserve the worktree.
-
-```bash
-GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
-GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
-WORKTREE_PATH=$(git rev-parse --show-toplevel)
-```
+**Only runs for Options 1 and 4.** Options 2 and 3 always preserve the workspace.
 
 **If `GIT_DIR == GIT_COMMON`:** Normal repo, no worktree to clean up. Done.
 
-**If worktree path is under `.worktrees/`, `worktrees/`, or `~/.config/superpowers/worktrees/`:** Superpowers created this worktree — we own cleanup.
+**If the workspace was created by `invoke_subagent` with `Workspace: "branch"`:** The platform handles cleanup automatically when the subagent terminates. No manual cleanup needed.
+
+**If the workspace was created by manual `git worktree add`:** Clean up with:
 
 ```bash
 MAIN_ROOT=$(git -C "$(git rev-parse --git-common-dir)/.." rev-parse --show-toplevel)
 cd "$MAIN_ROOT"
 git worktree remove "$WORKTREE_PATH"
-git worktree prune  # Self-healing: clean up any stale registrations
+git worktree prune
 ```
 
-**Otherwise:** The host environment (harness) owns this workspace. Do NOT remove it. If your platform provides a workspace-exit tool, use it. Otherwise, leave the workspace in place.
 
 ## Quick Reference
 
