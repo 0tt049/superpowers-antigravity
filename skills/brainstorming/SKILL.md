@@ -23,7 +23,7 @@ You MUST create a `task.md` artifact (using `write_to_file` with `IsArtifact: tr
 
 
 1. **Explore project context** — check files, docs, recent commits
-2. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
+2. **Assess visual needs** — note whether upcoming questions have visual aspects. If so, use `generate_image` for mockups and diagrams as you go. No consent needed — this is a native tool, not a browser session.
 3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
@@ -37,8 +37,7 @@ You MUST create a `task.md` artifact (using `write_to_file` with `IsArtifact: tr
 ```dot
 digraph brainstorming {
     "Explore project context" [shape=box];
-    "Visual questions ahead?" [shape=diamond];
-    "Offer Visual Companion\n(own message, no other content)" [shape=box];
+    "Assess visual needs" [shape=box];
     "Ask clarifying questions" [shape=box];
     "Propose 2-3 approaches" [shape=box];
     "Present design sections" [shape=box];
@@ -48,10 +47,8 @@ digraph brainstorming {
     "User reviews spec?" [shape=diamond];
     "Invoke writing-plans skill" [shape=doublecircle];
 
-    "Explore project context" -> "Visual questions ahead?";
-    "Visual questions ahead?" -> "Offer Visual Companion\n(own message, no other content)" [label="yes"];
-    "Visual questions ahead?" -> "Ask clarifying questions" [label="no"];
-    "Offer Visual Companion\n(own message, no other content)" -> "Ask clarifying questions";
+    "Explore project context" -> "Assess visual needs";
+    "Assess visual needs" -> "Ask clarifying questions";
     "Ask clarifying questions" -> "Propose 2-3 approaches";
     "Propose 2-3 approaches" -> "Present design sections";
     "Present design sections" -> "User approves design?";
@@ -148,11 +145,21 @@ Wait for the user's response. If they request changes, make them and re-run the 
 
 ## Visual Companion
 
-When brainstorming involves visual questions (mockups, layouts, diagrams), use native Antigravity 2.0 tools:
+When brainstorming involves visual questions, use native Antigravity tools directly:
 
-- **Mockups and wireframes:** Use `generate_image` to create visual mockups. Embed inline with `![description](/path/to/image.png)` in artifacts.
-- **Interactive selection:** Use `ask_question` with options for design choices. This renders an interactive modal — far better than typing numbered options in text.
-- **Layout comparisons:** Generate multiple mockups, embed in a carousel in an artifact for side-by-side comparison.
+**Generating mockups:**
+- Use `generate_image` with specific, descriptive prompts. Include layout details, color schemes, element placement.
+- Bad prompt: "dashboard mockup"
+- Good prompt: "Modern project management dashboard with dark theme. Left sidebar with project list and icons. Main area shows a kanban board with 4 columns (Backlog, In Progress, Review, Done). Header bar with search field and notification bell. Clean, minimal design with subtle shadows."
+
+**Comparisons:**
+- Generate 2-3 alternatives when presenting design options
+- Embed in an artifact using a carousel for side-by-side review:
+  ````carousel
+  ![Option A: Sidebar layout](/path/to/mockup_a.png)
+  <!-- slide -->
+  ![Option B: Top-nav layout](/path/to/mockup_b.png)
+  ````
 
 **Per-question decision:** For each question, decide whether visual or text is better:
 - **Use `generate_image`** for content that IS visual — mockups, wireframes, layout comparisons, architecture diagrams
