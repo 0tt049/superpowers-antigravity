@@ -115,9 +115,74 @@ Implementer subagents report one of four statuses. Handle each appropriately:
 1. If it's a context problem, provide more context and re-dispatch with the same model
 2. If the task requires more reasoning, re-dispatch with a more capable model
 3. If the task is too large, break it into smaller pieces
-4. If the plan itself is wrong, escalate to the human
+4. If the plan itself is wrong, escalate to the user
 
 **Never** ignore an escalation or force the same model to retry without changes. If the implementer said it's stuck, something needs to change.
+
+## Background Task Management
+
+When implementers run long-running operations (builds, test suites, deployments), use `manage_task` instead of blocking:
+
+**For operations expected to take >30 seconds:**
+- Implementer should use `run_command` with a short `WaitMsBeforeAsync` (e.g., 500ms) to background it
+- Use `manage_task` with `status` to check on completion when notified
+- Don't poll in a loop — the system automatically notifies when tasks finish
+- Use `manage_task` with `kill` to terminate stuck processes
+
+**When to background vs. wait:**
+
+```dot
+digraph background_decision {
+    "Operation expected >30s?" [shape=diamond];
+    "Background with manage_task" [shape=box];
+    "Wait synchronously" [shape=box];
+
+    "Operation expected >30s?" -> "Background with manage_task" [label="yes"];
+    "Operation expected >30s?" -> "Wait synchronously" [label="no"];
+}
+```
+
+## Agent Communication
+
+Use `send_message` to communicate with running subagents:
+
+**Answering questions mid-flight:**
+- When an implementer asks a question while still running, use `send_message` with the implementer's conversation ID
+- Don't re-dispatch a new subagent just to answer a question — the original implementer has context
+
+**Providing additional context:**
+- If you realize an implementer needs more information after dispatch, use `send_message` to send it
+- The implementer receives it as a message and can incorporate it into their work
+
+**When to use `send_message` vs. re-dispatch:**
+- Subagent is still running and needs info → `send_message`
+- Subagent reported NEEDS_CONTEXT and stopped → re-dispatch with context
+- Subagent reported BLOCKED → assess blocker, possibly re-dispatch with different model
+
+## Timeout Protection
+
+Use `schedule` as a safety net for complex tasks:
+
+```dot
+digraph timeout {
+    "Dispatch implementer" [shape=box];
+    "Set one-shot timer" [shape=box];
+    "Timer fires?" [shape=diamond];
+    "Check subagent status" [shape=box];
+    "Subagent completes normally" [shape=box];
+    "Timer cancelled automatically" [shape=box];
+
+    "Dispatch implementer" -> "Set one-shot timer";
+    "Set one-shot timer" -> "Timer fires?" [label="wait"];
+    "Timer fires?" -> "Check subagent status" [label="yes - no response yet"];
+    "Timer fires?" -> "Subagent completes normally" [label="no - response received"];
+    "Subagent completes normally" -> "Timer cancelled automatically";
+}
+```
+
+- Set a one-shot timer when dispatching implementers for complex tasks (5 minutes for standard tasks, 10 for complex ones)
+- If the timer fires before the implementer responds, check status and intervene if needed
+- The timer cancels automatically if the implementer responds first — no cleanup needed
 
 ## Prompt Templates
 
