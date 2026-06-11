@@ -15,12 +15,14 @@ This fork **removes the abstraction entirely**. All skills use native Antigravit
 | **Platforms** | 9+ (Claude Code, Codex, Cursor, Gemini CLI, etc.) | Antigravity 2.0 only |
 | **Tool names in skills** | Claude Code names + per-platform mapping files | Native Antigravity names throughout |
 | **Subagent dispatch** | `Task tool (general-purpose)` with prompt template | `invoke_subagent` / `define_subagent` directly |
-| **Workspace isolation** | `git worktree` with harness detection fallback | Native `Workspace: "branch"` |
-| **Task tracking** | `TodoWrite` tool | `task.md` artifacts |
+| **Workspace isolation** | `git worktree` with harness detection fallback | Native `Workspace: "branch"` / `"share"` / `"inherit"` |
+| **Task tracking** | `TodoWrite` tool | `task.md` artifacts with `RequestFeedback` |
 | **Visual brainstorming** | Browser-based server with consent gate | Native `generate_image` (no server, no consent) |
 | **Plan formatting** | Plain markdown | Mermaid diagrams, file links, diff blocks, GitHub alerts |
-| **Background tasks** | Not documented | `manage_task`, `send_message`, `schedule` |
+| **Background tasks** | Not documented | `manage_task`, `send_message`, `schedule` (incl. cron) |
 | **UI verification** | Not available | `browser-testing` skill with screenshot evidence |
+| **Read-only subagents** | All subagents get full tool set | `TypeName: "research"` for reviewers (smaller context) |
+| **Web research** | Not guided | `search_web` + `read_url_content` integrated into debugging, brainstorming, planning |
 | **Hooks & bootstrap** | SessionStart hooks, `.claude-plugin/`, `.codex-plugin/`, etc. | `plugin.json` + `GEMINI.md` only |
 | **Test suite** | `tests/claude-code/`, `tests/opencode/`, etc. | `tests/antigravity/` with purity validation |
 | **Files removed** | — | 86 legacy platform files deleted |
@@ -34,6 +36,12 @@ Beyond the platform port, this fork adds capabilities that don't exist in the up
 * **Walkthrough artifacts** — `executing-plans` generates a `walkthrough.md` artifact with file links and test results before finishing
 * **Async subagent coordination** — `manage_task` for long-running builds, `send_message` for mid-flight questions, `schedule` for timeout protection
 * **Browser-testing skill** — evidence-before-assertions discipline for UI work (screenshot → DOM inspect → embed proof)
+* **Token-saving subagents** — reviewers and explorers use `TypeName: "research"` (read-only, smaller context window) instead of full `"self"` clones
+* **Automatic feedback loops** — `RequestFeedback: true` on design docs, plans, and walkthroughs eliminates the extra "please review" turn
+* **Workspace mode guidance** — decision tables across skills for choosing `branch`, `inherit`, or `share` per subagent role
+* **Web research integration** — `search_web` and `read_url_content` woven into debugging (unfamiliar errors), brainstorming (existing solutions), and planning (API docs)
+* **Cron-based verification** — recurring `schedule` timers for long-running test suites instead of blocking the orchestrator
+* **Slash command recommendations** — skills suggest `/grill-me`, `/goal`, `/browser` where appropriate
 
 ## How it works
 
@@ -171,20 +179,20 @@ git pull
 
 **Debugging**
 
-* **systematic-debugging** - 4-phase root cause process (includes root-cause-tracing, defense-in-depth, condition-based-waiting techniques)
-* **verification-before-completion** - Ensure it's actually fixed
+* **systematic-debugging** - 4-phase root cause process with `search_web` for unfamiliar errors and `grep_search` for codebase patterns
+* **verification-before-completion** - Ensure it's actually fixed; cron schedules for long test suites
 
 **Collaboration**
 
-* **brainstorming** - Socratic design refinement with native `generate_image` for visual mockups
-* **writing-plans** - Detailed implementation plans with Mermaid diagrams and rich formatting
+* **brainstorming** - Socratic design refinement with `generate_image` mockups, `research` subagents for exploration, `search_web` for prior art
+* **writing-plans** - Detailed implementation plans with Mermaid diagrams, rich formatting, `RequestFeedback` on artifacts
 * **executing-plans** - Inline plan execution with walkthrough generation (for non-subagent environments)
-* **dispatching-parallel-agents** - Concurrent subagent workflows via `invoke_subagent`
-* **requesting-code-review** - Pre-review checklist
+* **dispatching-parallel-agents** - Concurrent subagent workflows with `Workspace: "share"` and `manage_subagents` monitoring
+* **requesting-code-review** - `TypeName: "research"` reviewers with GitHub alert severity classification
 * **receiving-code-review** - Responding to feedback
-* **using-git-worktrees** - Workspace isolation via native `Workspace: "branch"`
-* **finishing-a-development-branch** - Merge/PR decision workflow
-* **subagent-driven-development** - Fast iteration with two-stage review, `manage_task` for async ops, `schedule` for timeouts
+* **using-git-worktrees** - Workspace isolation with mode decision table (`branch`/`inherit`/`share`)
+* **finishing-a-development-branch** - Merge/PR decision workflow with `ask_permission` for destructive operations
+* **subagent-driven-development** - Fast iteration with two-stage review, `manage_task` for async ops, `schedule` cron for timeouts
 
 **Meta**
 
