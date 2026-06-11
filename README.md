@@ -10,6 +10,22 @@ The original superpowers supports 9+ platforms (Claude Code, Codex, Cursor, Gemi
 
 This fork **removes the abstraction entirely**. All skills use native Antigravity 2.0 tool names directly (`view_file`, `run_command`, `invoke_subagent`, `define_subagent`, etc.), eliminating the translation overhead and making every skill read exactly as the agent will execute it.
 
+### Why remove cross-platform support?
+
+The abstraction layer costs tokens on every interaction, and those costs compound across a session:
+
+1. **Tool mapping file loaded every session.** The upstream approach loads a ~500-token tool mapping reference (`antigravity-tools.md`) into context via `GEMINI.md` at session start. Every turn carries this translation table. This fork eliminates it entirely — `GEMINI.md` is now a single line.
+
+2. **Agent reasoning overhead.** When a skill says "use the Bash tool," the agent must look up the mapping, reason about which native tool to call, and potentially make mistakes. When skills say `run_command` directly, there's zero translation cost — the agent reads the exact tool name it will invoke.
+
+3. **Platform-conditional branching in skills.** The upstream `using-superpowers` skill has separate instruction blocks for Claude Code, Copilot CLI, Gemini CLI, Codex, Antigravity 2.0, and "other environments." The agent reads all of them every time the skill loads, but only one applies. This fork has a single Antigravity paragraph.
+
+4. **86 fewer files in the project.** When agents explore the repo (during brainstorming, debugging, or planning), fewer files means less noise in `list_dir` output and faster orientation. Platform manifests, hook scripts, brainstorm server code, and legacy test suites are all gone.
+
+5. **Smaller, focused skills.** Skills like `using-git-worktrees` went from ~216 lines (with harness detection, `git worktree` fallback, submodule guards) to ~55 lines. Shorter skills mean less context consumed when loaded, and less ambiguity about which code path to follow.
+
+The trade-off is clear: if you use Antigravity 2.0, this fork gives you leaner skills, faster agent orientation, and zero translation overhead. If you need Claude Code, Codex, or other platforms, use the upstream [obra/superpowers](https://github.com/obra/superpowers).
+
 | Area | Upstream (obra/superpowers) | This fork |
 |------|---------------------------|-----------|
 | **Platforms** | 9+ (Claude Code, Codex, Cursor, Gemini CLI, etc.) | Antigravity 2.0 only |
