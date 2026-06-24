@@ -80,9 +80,9 @@ digraph process {
 
 At the start of plan execution, **before dispatching any tasks**, define all three subagent types:
 
-1. `define_subagent` with name `"implementer"` — read `./implementer-prompt.md` for the static system prompt
-2. `define_subagent` with name `"spec-reviewer"` — read `./spec-reviewer-prompt.md` for the static system prompt
-3. `define_subagent` with name `"code-reviewer"` — read `./code-reviewer.md` (in `requesting-code-review/`) for the static system prompt
+1. `define_subagent` with name `"implementer"` — locate the absolute path of the `subagent-driven-development` skill directory in the `<skills>` section of your prompt, then read the `implementer-prompt.md` file from that directory for the static system prompt.
+2. `define_subagent` with name `"spec-reviewer"` — locate the absolute path of the `subagent-driven-development` skill directory in the `<skills>` section of your prompt, then read the `spec-reviewer-prompt.md` file from that directory for the static system prompt.
+3. `define_subagent` with name `"code-reviewer"` — locate the absolute path of the `requesting-code-review` skill directory in the `<skills>` section of your prompt, then read the `code-reviewer.md` file from that directory for the static system prompt.
 
 This pays the prompt cost once. Every subsequent `invoke_subagent` with these types reuses the cached definition.
 
@@ -208,7 +208,7 @@ Don't poll in a loop — the system notifies you when subagents complete. Use `m
 
 ## Prompt Templates
 
-- `./implementer-prompt.md` — `define_subagent` definition (static system prompt + dynamic prompt template)
+- `implementer-prompt.md` (located in the `subagent-driven-development` skill directory) — `define_subagent` definition (static system prompt + dynamic prompt template)
 - `./spec-reviewer-prompt.md` — `define_subagent` definition (static system prompt + dynamic prompt template)
 - `./code-quality-reviewer-prompt.md` — Delegates to `code-reviewer` type with extra review criteria
 - `requesting-code-review/code-reviewer.md` — `define_subagent` definition (static system prompt + dynamic prompt template)
